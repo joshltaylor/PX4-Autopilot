@@ -1,0 +1,40 @@
+module_name: Dynamixel Serial
+serial_config:
+    - command: dynamixel_serial start -d ${SERIAL_DEV} -b p:${BAUD_PARAM}
+      port_config_param:
+        name: DYN_SER_CONFIG
+        group: Dynamixel
+        default: TEL4
+
+parameters:
+    - group: Dynamixel
+      definitions:
+        DYN_SER_MODE:
+            description:
+                short: Configure Dynamixel Operating Mode
+                long: |
+                    Defines the Operating Mode(11) (Position, Extended Position, Velocity,Current)
+
+            type: enum
+            values:
+                0: Current Control Mode
+                1: Velocity Control Mode
+                3: Position Control Mode
+                4: Extended Position Control Mode(Multi-turn)
+            reboot_required: false
+            default: 3
+
+        DYN_SER_TRIM:
+            description:
+                short: Trim unwanted positive or negative setpoint values
+                long: |
+                    Defines if values are trimmed. (Default) setpoints are not trimmed.
+
+            type: enum
+            values:
+                0: No trimming
+                1: Trim negative values
+                2: Trim positive values
+            reboot_required: false
+            default: 0
+

@@ -1,0 +1,12 @@
+menuconfig MODULES_TILT_ROTORS
+	bool "tilt_rotors"
+	default n
+	---help---
+		Enable support for tilt_rotors
+
+menuconfig USER_TILT_ROTORS
+	bool "tilt_rotors running as userspace module"
+	default n
+	depends on BOARD_PROTECTED && MODULES_TILT_ROTORS
+	---help---
+		Put tilt_rotors in userspace memory
