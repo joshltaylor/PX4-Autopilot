@@ -591,9 +591,9 @@ ControlAllocator::publish_actuator_controls()
 	actuator_motors.timestamp = hrt_absolute_time();
 	actuator_motors.timestamp_sample = _timestamp_sample;
 
-	actuator_servos_s actuator_servos;
-	actuator_servos.timestamp = actuator_motors.timestamp;
-	actuator_servos.timestamp_sample = _timestamp_sample;
+	//actuator_servos_s actuator_servos;
+	//actuator_servos.timestamp = actuator_motors.timestamp;
+	//actuator_servos.timestamp_sample = _timestamp_sample;
 
 	actuator_motors.reversible_flags = _param_r_rev.get();
 
@@ -625,23 +625,32 @@ ControlAllocator::publish_actuator_controls()
 	_actuator_motors_pub.publish(actuator_motors);
 
 	// servos
-	if (_num_actuators[1] > 0) {
-		int servos_idx;
+	//if (_num_actuators[1] > 0) {
+	//	int servos_idx;
 
-		for (servos_idx = 0; servos_idx < _num_actuators[1] && servos_idx < actuator_servos_s::NUM_CONTROLS; servos_idx++) {
-			int selected_matrix = _control_allocation_selection_indexes[actuator_idx];
-			float actuator_sp = _control_allocation[selected_matrix]->getActuatorSetpoint()(actuator_idx_matrix[selected_matrix]);
-			actuator_servos.control[servos_idx] = PX4_ISFINITE(actuator_sp) ? actuator_sp : NAN;
-			++actuator_idx_matrix[selected_matrix];
-			++actuator_idx;
-		}
+	//	for (servos_idx = 0; servos_idx < _num_actuators[1] && servos_idx < actuator_servos_s::NUM_CONTROLS; servos_idx++) {
+	//		int selected_matrix = _control_allocation_selection_indexes[actuator_idx];
+	//		float actuator_sp = _control_allocation[selected_matrix]->getActuatorSetpoint()(actuator_idx_matrix[selected_matrix]);
+	//		actuator_servos.control[servos_idx] = PX4_ISFINITE(actuator_sp) ? actuator_sp : NAN;
+	//		++actuator_idx_matrix[selected_matrix];
+	//		++actuator_idx;
+	//	}
 
-		for (int i = servos_idx; i < actuator_servos_s::NUM_CONTROLS; i++) {
-			actuator_servos.control[i] = NAN;
-		}
+	//	for (int i = servos_idx; i < actuator_servos_s::NUM_CONTROLS; i++) {
+	//		actuator_servos.control[i] = NAN;
+	//	}
 
-		_actuator_servos_pub.publish(actuator_servos);
-	}
+	//	_actuator_servos_pub.publish(actuator_servos);
+	//}
+
+	//actuator_servos.control[0] = -0.2;
+	//actuator_servos.control[1] = -0.2;
+
+	//for (int i = 2; i < actuator_servos_s::NUM_CONTROLS; i++) {
+	//	actuator_servos.control[i] = NAN;
+	//}
+
+	//_actuator_servos_pub.publish(actuator_servos);
 }
 
 int ControlAllocator::task_spawn(int argc, char *argv[])
