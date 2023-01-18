@@ -147,7 +147,15 @@ MulticopterAttitudeControl::generate_attitude_setpoint(const Quatf &q, float dt,
 	 */
 	_man_x_input_filter.setParameters(dt, _param_mc_man_tilt_tau.get());
 	_man_y_input_filter.setParameters(dt, _param_mc_man_tilt_tau.get());
-	_man_x_input_filter.update(_manual_control_setpoint.x * _man_tilt_max);
+	//_man_x_input_filter.update(_manual_control_setpoint.x * _man_tilt_max);
+
+	if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_ON) {
+		_man_x_input_filter.update(0 * _man_tilt_max);
+	}
+	else if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_OFF) {
+		_man_x_input_filter.update(_manual_control_setpoint.x * _man_tilt_max);
+	}
+
 	_man_y_input_filter.update(_manual_control_setpoint.y * _man_tilt_max);
 	const float x = _man_x_input_filter.getState();
 	const float y = _man_y_input_filter.getState();
@@ -241,6 +249,11 @@ MulticopterAttitudeControl::Run()
 
 		updateParams();
 		parameters_updated();
+	}
+
+	if (_manual_control_switches_sub.updated()) {
+
+		_manual_control_switches_sub.copy(&_manual);
 	}
 
 	// run controller on attitude updates

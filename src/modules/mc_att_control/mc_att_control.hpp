@@ -59,6 +59,8 @@
 
 #include <AttitudeControl.hpp>
 
+#include <uORB/topics/manual_control_switches.h>
+
 using namespace time_literals;
 
 /**
@@ -112,11 +114,15 @@ private:
 
 	uORB::SubscriptionCallbackWorkItem _vehicle_attitude_sub{this, ORB_ID(vehicle_attitude)};
 
+	uORB::Subscription _manual_control_switches_sub{ ORB_ID(manual_control_switches) };
+
 	uORB::Publication<vehicle_rates_setpoint_s>	_v_rates_sp_pub{ORB_ID(vehicle_rates_setpoint)};			/**< rate setpoint publication */
 	uORB::Publication<vehicle_attitude_setpoint_s>	_vehicle_attitude_setpoint_pub;
 
 	struct manual_control_setpoint_s	_manual_control_setpoint {};	/**< manual control setpoint */
 	struct vehicle_control_mode_s		_v_control_mode {};	/**< vehicle control mode */
+
+	struct manual_control_switches_s _manual;
 
 	perf_counter_t	_loop_perf;			/**< loop duration performance counter */
 
