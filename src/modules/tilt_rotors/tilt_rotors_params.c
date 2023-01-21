@@ -53,7 +53,7 @@ PARAM_DEFINE_FLOAT(TILT_KNOB, 0.f);
 
 
 /**
- * Home Position (Vertical Rotors)
+ * Home Position (Vertical Tilt Rotors)
  *
  * 
  *
@@ -62,3 +62,36 @@ PARAM_DEFINE_FLOAT(TILT_KNOB, 0.f);
  * @max 4095
  */
 PARAM_DEFINE_INT32(HOME_POS, 2048);
+
+
+/**
+ * Tilt Rotor Throttle
+ *
+ * @group TiltRotors
+ * @decimal 5
+ * @min 0.0
+ * @max 1.0
+ */
+PARAM_DEFINE_FLOAT(TILT_THRTL, 0.4f);
+
+
+/**
+ * Tilt Rotor Max Angle
+ *
+ * @group TiltRotors
+ * @decimal 5
+ * @min 0.0
+ * @max 89.0
+ */
+PARAM_DEFINE_FLOAT(TILT_MAX_ANGLE, 45.0f);
+
+
+/**
+ * Tilt Rotor Throttle Limit
+ *
+ * @group TiltRotors
+ * @decimal 5
+ * @min 0
+ * @max 1.0
+ */
+PARAM_DEFINE_FLOAT(TILT_THRTL_LIM, 0.5f);

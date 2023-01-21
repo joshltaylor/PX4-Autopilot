@@ -50,12 +50,13 @@
 #include <uORB/topics/manual_control_setpoint.h>
 
 #include <uORB/topics/actuator_servos.h>
+#include <uORB/topics/actuator_armed.h>
 
 using namespace time_literals;
 
 extern "C" __EXPORT int tilt_rotors_main(int argc, char *argv[]);
 
-
+enum system_state { DISARMED, RAMP, ARMED };
 
 
 class TiltRotors : public ModuleBase<TiltRotors>, public ModuleParams
@@ -85,7 +86,7 @@ public:
 
 private:
 
-
+	system_state state = DISARMED;
 	
 	struct manual_control_switches_s _manual;
 
@@ -106,13 +107,18 @@ private:
 
 	DEFINE_PARAMETERS(
 		(ParamFloat<px4::params::TILT_KNOB>) _tilt_knob,
-		(ParamInt<px4::params::HOME_POS>) _home_pos
+		(ParamInt<px4::params::HOME_POS>) _home_pos,
+		(ParamFloat<px4::params::TILT_THRTL>) _tilt_thrtl,
+		(ParamFloat<px4::params::TILT_MAX_ANGLE>) _tilt_max_angle,
+		(ParamFloat<px4::params::TILT_THRTL_LIM>) _tilt_thrtl_lim
 	)	
 
 	// Subscriptions
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
 	uORB::Subscription _manual_control_switches_sub{ORB_ID(manual_control_switches) };
 	uORB::Subscription _manual_control_setpoint_sub{ ORB_ID(manual_control_setpoint) };	/**< manual control setpoint subscription */
+	uORB::Subscription _actuator_armed_sub{ ORB_ID(actuator_armed) };
+
 
 	
 	// Publications
@@ -123,6 +129,7 @@ private:
 	debug_vect_s			_dyn_angles{};
 	struct manual_control_setpoint_s	_manual_control_setpoint {};	/**< manual control setpoint */
 	actuator_servos_s actuator_servos;
+	actuator_armed_s _actuator_armed;
 
 };
 

@@ -170,10 +170,16 @@ void TiltRotors::run()
 	double tilt_angle = 0;
 	double thrust_command = -1;
 
+	state = DISARMED;
+
+	float dt = 0.001f; // prevent division with 0
+	hrt_abstime start = 0;
+	start = hrt_absolute_time();
+
 	parameters_update(true);
 
-	PX4_INFO("TESTING");
-	PX4_INFO("Thrust command_1: %f", (double)thrust_command);
+
+	
 
 
 
@@ -183,6 +189,7 @@ void TiltRotors::run()
 		px4_usleep(1000);
 
 		_manual_control_setpoint_sub.update(&_manual_control_setpoint);
+		_actuator_armed_sub.update(&_actuator_armed);
 
 
 		if (_manual_control_switches_sub.updated()) {
@@ -203,41 +210,83 @@ void TiltRotors::run()
 		//}
 		// and make required to edits to mc_att_control_main.cpp
 
-
-		
-
-
-		if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_ON) {
-			tilt_angle = (double)_manual_control_setpoint.x * 45.00;
-			_dyn_angles.x = angle2counts(tilt_angle);
-			_debug_vect_pub.publish(_dyn_angles);
-
-			thrust_command = (((double)_manual_control_setpoint.z * 0.9) / cos(tilt_angle * PI / 180)) - 0.9;
-			if (thrust_command > 0.4) { thrust_command = 0.4; }
-			else if (thrust_command < -0.9) { thrust_command = -0.9; }
-			PX4_INFO("Thrust command: %f", (double)thrust_command);
-			actuator_servos.control[0] = thrust_command;
-			actuator_servos.control[1] = thrust_command;
-
-			for (int i = 2; i < actuator_servos_s::NUM_CONTROLS; i++) {
-				actuator_servos.control[i] = NAN;
+		if (state == DISARMED) {
+			if (_actuator_armed.armed) {
+				state = RAMP;
+				start = hrt_absolute_time();
 			}
-
-			_actuator_servos_pub.publish(actuator_servos);
 		}
-		else if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_OFF) {
-			_dyn_angles.x = _home_pos.get();
-			_debug_vect_pub.publish(_dyn_angles);
-			for (int i = 0; i < actuator_servos_s::NUM_CONTROLS; i++) {
-				actuator_servos.control[i] = NAN;
-			}
+		else if (state == RAMP) {
+			PX4_INFO("RAMP");
+			PX4_INFO("dt: %f", (double)dt);
 
-			_actuator_servos_pub.publish(actuator_servos);
+
+			if (dt >= 2) {
+				state = ARMED;
+				dt = 0.001f; // prevent division with 0
+				start = 0;
+			}
+		}
+		else {
+			if (!_actuator_armed.armed) {
+				state = DISARMED;
+			}
 		}
 
-		PX4_INFO("Thrust command_2: %f", (double)thrust_command);
+		if (state == DISARMED) {
+			thrust_command = -1;
+		}
+		else if (state == RAMP) {
+			dt = hrt_elapsed_time(&start) * 1e-6;
 
+			thrust_command = ((double)_tilt_thrtl.get() * ((double)dt / 2)) * 2.0 - 1;
+		}
+		else {
+			if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_ON) {
+				tilt_angle = (double)_manual_control_setpoint.x * (double)_tilt_max_angle.get();
+				_dyn_angles.x = angle2counts(tilt_angle);
+				_debug_vect_pub.publish(_dyn_angles);
 
+				// for dual transmitter flight mode
+				//thrust_command = (((double)_manual_control_setpoint.z * 0.9) / cos(tilt_angle * PI / 180)) - 0.9;
+				thrust_command = ((double)_tilt_thrtl.get() / cos(tilt_angle * PI / 180)) * 2.0 - 1; // nominal 40% throttle
+				/*if (thrust_command > 0.5) { thrust_command = 0.5; }
+				else if (thrust_command < -1) { thrust_command = -1; }
+				PX4_INFO("Thrust command: %f", (double)thrust_command);
+				actuator_servos.control[0] = thrust_command;
+				actuator_servos.control[1] = thrust_command;
+
+				for (int i = 2; i < actuator_servos_s::NUM_CONTROLS; i++) {
+					actuator_servos.control[i] = NAN;
+				}
+
+				_actuator_servos_pub.publish(actuator_servos);*/
+			}
+			else if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_OFF) {
+				_dyn_angles.x = _home_pos.get();
+				_debug_vect_pub.publish(_dyn_angles);
+
+				// for dual trasmitter flight mode
+				/*for (int i = 0; i < actuator_servos_s::NUM_CONTROLS; i++) {
+					actuator_servos.control[i] = NAN;
+				}
+
+				_actuator_servos_pub.publish(actuator_servos);*/
+				thrust_command = (double)_tilt_thrtl.get() * 2.0 - 1;
+			}
+		}
+
+		if (thrust_command > (double)_tilt_thrtl_lim.get() * 2 - 1) { thrust_command = (double)_tilt_thrtl_lim.get() * 2 - 1; }
+		else if (thrust_command < -1) { thrust_command = -1; }
+		PX4_INFO("Thrust command: %f", (double)thrust_command);
+		actuator_servos.control[0] = thrust_command;
+		actuator_servos.control[1] = thrust_command;
+
+		for (int i = 2; i < actuator_servos_s::NUM_CONTROLS; i++) {
+			actuator_servos.control[i] = NAN;
+		}
+
+		_actuator_servos_pub.publish(actuator_servos);
 		
 
 
