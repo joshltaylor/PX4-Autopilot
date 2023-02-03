@@ -31,63 +31,49 @@
  *
  ****************************************************************************/
 
-/**
- * @file dynamixel_serial.h
- * @brief Module for sending Dynamixel commands using serial port
- *
- * @author Pedro Mendes <pmen817@aucklanduni.ac.nz>
- *
- */
-
 #pragma once
 
 #include <px4_platform_common/module.h>
 #include <px4_platform_common/module_params.h>
-#include <px4_platform_common/cli.h>
-
+//#include <uORB/Subscription.hpp>
 #include <uORB/SubscriptionInterval.hpp>
+#include <uORB/Publication.hpp>
 #include <uORB/topics/parameter_update.h>
+
 #include <uORB/topics/debug_vect.h>
 #include <uORB/topics/alg_setpoint.h>
 
-#include <termios.h>
-#include "DynamixelProtocol/DynamixelProtocol.hpp"
+#include <drivers/drv_hrt.h>
+//#include <drivers/pwm_out.h>
 
-#define DEFAULT_DEVICE_NAME     "/dev/ttyS3"
+#include <uORB/topics/manual_control_switches.h>
+
 
 using namespace time_literals;
 
-extern "C" __EXPORT int dynamixel_serial_main(int argc, char* argv[]);
+extern "C" __EXPORT int articulated_landing_gear_main(int argc, char *argv[]);
 
-const char* _device_name{ DEFAULT_DEVICE_NAME };
-struct termios _uart_config_original; //save original uart config
-static unsigned long int sentPackets = 0;
+enum ALG_state { LANDING_GEAR, GRIPPER_OPEN, GRIPPER_CLOSED };
 
-int _val_cmd = 0;  //custom command
-unsigned short int _led_cmd = 1;    //custom command
-unsigned short int _mode_cmd = 3; //custom command
-unsigned short int _servo_id_cmd = 1;  //custom command
 
-class DynamixelSerial : public ModuleBase<DynamixelSerial>, public ModuleParams
+class ArticulatedLandingGear : public ModuleBase<ArticulatedLandingGear>, public ModuleParams
 {
 public:
-	DynamixelSerial(int uart, int baud) : ModuleParams(nullptr), _uart(uart), _baudrate(baud)
-	{
-	};
+	ArticulatedLandingGear();// : ModuleParams(nullptr) {};
 
-	virtual ~DynamixelSerial() = default;
+	virtual ~ArticulatedLandingGear() = default;
 
 	/** @see ModuleBase */
-	static int task_spawn(int argc, char* argv[]);
+	static int task_spawn(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static DynamixelSerial* instantiate(int argc, char* argv[]);
+	static ArticulatedLandingGear*instantiate(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int custom_command(int argc, char* argv[]);
+	static int custom_command(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int print_usage(const char* reason = nullptr);
+	static int print_usage(const char *reason = nullptr);
 
 	/** @see ModuleBase::run() */
 	void run() override;
@@ -97,14 +83,11 @@ public:
 
 private:
 
-	/* Default values for arguments */
-	int _uart{};
-	int _baudrate{};
-	bool _comm_state = false;
+	ALG_state state = LANDING_GEAR;
+	
+	struct manual_control_switches_s _manual;
 
-	float _ext_setpoint{ 0 };  //Need to receive value from mavlink
-	bool _ext_flag = false;
-	hrt_abstime _debug_timestamp_last{};
+
 
 	/**
 	 * Check for parameter changes and update them if needed.
@@ -112,24 +95,30 @@ private:
 	 * @param force for a parameter update
 	 */
 	void parameters_update(bool force = false);
-	bool constrain_input(int val, unsigned short mode);
+
+
 
 
 	DEFINE_PARAMETERS(
-		(ParamInt<px4::params::DYN_SER_MODE>)   _param_dyn_mode,
-		(ParamInt<px4::params::DYN_SER_TRIM>)   _param_dyn_trim,
-		(ParamInt<px4::params::DYN_SER_POS_MIN>) _param_dyn_posmin,
-		(ParamInt<px4::params::DYN_SER_POS_MAX>) _param_dyn_posmax,
-		(ParamInt<px4::params::DYN_SER_VEL_MAX>) _param_dyn_velmax,
-		(ParamInt<px4::params::DYN_SER_CUR_MAX>) _param_dyn_curmax,
-		(ParamInt<px4::params::DYN_SER_EXT_MAX>) _param_dyn_extmax
-
-	)
+		(ParamInt<px4::params::LANDING_GEAR_POS>) _landing_gear_pos,
+		(ParamInt<px4::params::GRIP_OPEN_POS>) _grip_open_pos,
+		(ParamInt<px4::params::GRIP_CLOSED_POS>) _grip_closed_pos
+	)	
 
 	// Subscriptions
-	uORB::SubscriptionInterval _parameter_update_sub{ ORB_ID(parameter_update), 1_s };
-	uORB::Subscription _debug_vect_sub{ ORB_ID(debug_vect) };
-	uORB::Subscription _alg_setpoint_sub{ ORB_ID(alg_setpoint) };
+	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
+	uORB::Subscription _manual_control_switches_sub{ORB_ID(manual_control_switches) };
+	
+
+	
+	// Publications
+	uORB::Publication<debug_vect_s> _debug_vect_pub{ORB_ID(debug_vect)};
+	uORB::Publication<alg_setpoint_s> _alg_setpoint_pub{ ORB_ID(alg_setpoint) };
+
+
+	debug_vect_s			_dyn_angles{};
+	alg_setpoint_s			_alg_setpoint{};
+	
 
 };
 

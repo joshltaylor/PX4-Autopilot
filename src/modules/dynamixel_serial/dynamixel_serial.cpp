@@ -466,6 +466,7 @@ void DynamixelSerial::run()
 	parameters_update(true);
 
 	debug_vect_s flags_vect;
+	alg_setpoint_s curr_alg_setpoint;
 
 	// ########### josh edits	##############
 
@@ -474,7 +475,7 @@ void DynamixelSerial::run()
 	dynamixel.set_setpoints(1, angle2counts(tilt_angle), 0, OPMODE_POS_CONTROL);
 
 	// #######################################
-
+		
 	
 
 	while (!should_exit()) {
@@ -486,6 +487,16 @@ void DynamixelSerial::run()
 			_debug_vect_sub.copy(&flags_vect);
 			//_debug_timestamp_last = hrt_absolute_time();
 		}
+
+		// ########### josh edits	##############
+
+		if (_alg_setpoint_sub.updated()) {
+			_alg_setpoint_sub.copy(&curr_alg_setpoint);
+		}
+
+		// #######################################
+
+
 		if (constrain_input(_val_cmd, _mode_cmd)) {
 			PX4_WARN("Setpoint outside limits...\n Setting to %i.", _val_cmd);
 		}
@@ -498,7 +509,11 @@ void DynamixelSerial::run()
 		// 
 		// update servo setpoints
 		//dynamixel.set_setpoints(_servo_id_cmd, _val_cmd, _led_cmd, _mode_cmd);
-		dynamixel.set_setpoints(1, flags_vect.x, 0, OPMODE_POS_CONTROL);
+		dynamixel.set_setpoints(1, flags_vect.x, 0, OPMODE_EXT_POS_CONTROL);
+		//dynamixel.set_setpoints(2, curr_alg_setpoint.setpoint, 0, OPMODE_EXT_POS_CONTROL);
+		dynamixel.set_setpoints(2, curr_alg_setpoint.setpoint, 0, OPMODE_EXT_POS_CONTROL);
+
+		PX4_INFO("setpoint: %i", (int)curr_alg_setpoint.setpoint);
 
 		// ###########################################
 

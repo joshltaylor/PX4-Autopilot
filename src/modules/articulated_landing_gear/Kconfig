@@ -1,0 +1,12 @@
+menuconfig MODULES_ARTICULATED_LANDING_GEAR
+	bool "articulated_landing_gear"
+	default n
+	---help---
+		Enable support for articulated_landing_gear
+
+menuconfig USER_ARTICULATED_LANDING_GEAR
+	bool "articulated_landing_gear running as userspace module"
+	default n
+	depends on BOARD_PROTECTED && MODULES_ARTICULATED_LANDING_GEAR
+	---help---
+		Put articulated_landing_gear in userspace memory
