@@ -244,7 +244,7 @@ void TiltRotors::run()
 		else {
 			if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_ON) {
 				tilt_angle = (double)_manual_control_setpoint.x * (double)_tilt_max_angle.get();
-				_dyn_angles.x = angle2counts(tilt_angle);
+				_dyn_angles.x = angle2counts(-1*tilt_angle);
 				_debug_vect_pub.publish(_dyn_angles);
 
 				// for dual transmitter flight mode

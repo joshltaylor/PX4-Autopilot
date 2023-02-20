@@ -473,6 +473,7 @@ void DynamixelSerial::run()
 	// set home to 180 degrees
 	int tilt_angle = 0;
 	dynamixel.set_setpoints(1, angle2counts(tilt_angle), 0, OPMODE_POS_CONTROL);
+	dynamixel.set_setpoints(2, 0, 0, OPMODE_EXT_POS_CONTROL);
 
 	// #######################################
 		

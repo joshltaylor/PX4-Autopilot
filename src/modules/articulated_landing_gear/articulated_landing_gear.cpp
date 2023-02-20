@@ -156,6 +156,8 @@ void ArticulatedLandingGear::run()
 	//_dyn_angles.x = 0;
 	//_debug_vect_pub.publish(_dyn_angles);
 
+
+
 	state = LANDING_GEAR;
 
 	int current_pos;
