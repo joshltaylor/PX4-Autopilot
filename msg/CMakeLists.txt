@@ -206,7 +206,8 @@ set(msg_files
 	wind.msg
 	yaw_estimator_status.msg
 	alg_setpoint.msg
-)
+#	key_command.msg
+	)
 
 if(NOT px4_constrained_flash_build)
 	list(APPEND msg_files

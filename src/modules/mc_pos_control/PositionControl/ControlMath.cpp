@@ -44,9 +44,9 @@ using namespace matrix;
 
 namespace ControlMath
 {
-void thrustToAttitude(const Vector3f &thr_sp, const float yaw_sp, vehicle_attitude_setpoint_s &att_sp)
+void thrustToAttitude(const Vector3f &thr_sp, const float yaw_sp, vehicle_attitude_setpoint_s &att_sp, bool pitch_disable)
 {
-	bodyzToAttitude(-thr_sp, yaw_sp, att_sp);
+	bodyzToAttitude(-thr_sp, yaw_sp, att_sp, pitch_disable);
 	att_sp.thrust_body[2] = -thr_sp.length();
 }
 
@@ -67,7 +67,7 @@ void limitTilt(Vector3f &body_unit, const Vector3f &world_unit, const float max_
 	body_unit = cosf(angle) * world_unit + sinf(angle) * rejection.unit();
 }
 
-void bodyzToAttitude(Vector3f body_z, const float yaw_sp, vehicle_attitude_setpoint_s &att_sp)
+void bodyzToAttitude(Vector3f body_z, const float yaw_sp, vehicle_attitude_setpoint_s &att_sp, bool pitch_disable)
 {
 	// zero vector, no direction, set safe level value
 	if (body_z.norm_squared() < FLT_EPSILON) {
@@ -110,7 +110,21 @@ void bodyzToAttitude(Vector3f body_z, const float yaw_sp, vehicle_attitude_setpo
 
 	// copy quaternion setpoint to attitude setpoint topic
 	const Quatf q_sp{R_sp};
-	q_sp.copyTo(att_sp.q_d);
+
+	// ############ JOSH EDIT	###################################
+
+	if (pitch_disable) {
+		Eulerf euler_{R_sp};
+		Eulerf euler_update(euler_.phi(),0,euler_.psi());
+		const Quatf q_sp_update{euler_update};
+
+		q_sp_update.copyTo(att_sp.q_d);
+	} else {
+		q_sp.copyTo(att_sp.q_d);
+	}
+
+	// ################################################################
+
 
 	// calculate euler angles, for logging only, must not be used for control
 	const Eulerf euler{R_sp};

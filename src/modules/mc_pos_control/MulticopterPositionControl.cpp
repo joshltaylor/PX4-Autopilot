@@ -310,6 +310,12 @@ void MulticopterPositionControl::Run()
 	parameters_update(false);
 
 	perf_begin(_cycle_perf);
+
+	if (_manual_control_switches_sub.updated()) {
+
+		_manual_control_switches_sub.copy(&_manual);
+	}
+
 	vehicle_local_position_s local_pos;
 
 	if (_local_pos_sub.update(&local_pos)) {
@@ -468,6 +474,8 @@ void MulticopterPositionControl::Run()
 
 			_control.setState(states);
 
+
+
 			// Run position control
 			if (_control.update(dt)) {
 				_failsafe_land_hysteresis.set_state_and_update(false, time_stamp_now);
@@ -502,9 +510,19 @@ void MulticopterPositionControl::Run()
 			local_pos_sp.timestamp = hrt_absolute_time();
 			_local_pos_sp_pub.publish(local_pos_sp);
 
+			// ##################	JOSH EDIT	########################
+
+			if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_ON) {
+				pitch_disable = true;
+			} else {
+				pitch_disable = false;
+			}
+			// also added pitch_disable to PositionControl.update and velocity_control definitions
+			// ##############################################################
+
 			// Publish attitude setpoint output
 			vehicle_attitude_setpoint_s attitude_setpoint{};
-			_control.getAttitudeSetpoint(attitude_setpoint);
+			_control.getAttitudeSetpoint(attitude_setpoint, pitch_disable);
 			attitude_setpoint.timestamp = hrt_absolute_time();
 			_vehicle_attitude_setpoint_pub.publish(attitude_setpoint);
 

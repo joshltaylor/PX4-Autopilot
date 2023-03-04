@@ -268,6 +268,11 @@ MavlinkReceiver::handle_message(mavlink_message_t *msg)
 		handle_message_statustext(msg);
 		break;
 
+/*	case MAVLINK_MSG_ID_KEY_COMMAND:
+       		handle_message_key_command(msg);
+        	break;
+		*/
+
 #if !defined(CONSTRAINED_FLASH)
 
 	case MAVLINK_MSG_ID_NAMED_VALUE_FLOAT:
@@ -306,6 +311,7 @@ MavlinkReceiver::handle_message(mavlink_message_t *msg)
 	case MAVLINK_MSG_ID_GIMBAL_DEVICE_ATTITUDE_STATUS:
 		handle_message_gimbal_device_attitude_status(msg);
 		break;
+
 
 	default:
 		break;
@@ -380,6 +386,7 @@ MavlinkReceiver::evaluate_target_ok(int command, int target_system, int target_c
 
 	return target_ok;
 }
+
 
 void
 MavlinkReceiver::handle_message_command_long(mavlink_message_t *msg)
@@ -3074,6 +3081,26 @@ MavlinkReceiver::handle_message_gimbal_device_attitude_status(mavlink_message_t 
 
 	_gimbal_device_attitude_status_pub.publish(gimbal_attitude_status);
 }
+/*
+void
+MavlinkReceiver::handle_message_key_command(mavlink_message_t *msg)
+{
+    mavlink_key_command_t man;
+    mavlink_msg_key_command_decode(msg, &man);
+
+struct key_command_s key = {};
+
+    key.timestamp = hrt_absolute_time();
+    key.cmd = man.command;
+
+    if (_key_command_pub == nullptr) {
+        _key_command_pub = orb_advertise(ORB_ID(key_command), &key);
+
+    } else {
+        orb_publish(ORB_ID(key_command), _key_command_pub, &key);
+    }
+}
+*/
 
 void
 MavlinkReceiver::run()

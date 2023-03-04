@@ -51,6 +51,7 @@
 
 #include <uORB/topics/actuator_servos.h>
 #include <uORB/topics/actuator_armed.h>
+//#include <uORB/topics/tilt_command.h>
 
 using namespace time_literals;
 
@@ -87,8 +88,7 @@ public:
 private:
 
 	system_state state = DISARMED;
-	
-	struct manual_control_switches_s _manual;
+
 
 
 	// convert servo setpoint in degrees to encoder counts
@@ -111,16 +111,17 @@ private:
 		(ParamFloat<px4::params::TILT_THRTL>) _tilt_thrtl,
 		(ParamFloat<px4::params::TILT_MAX_ANGLE>) _tilt_max_angle,
 		(ParamFloat<px4::params::TILT_THRTL_LIM>) _tilt_thrtl_lim
-	)	
+	)
 
 	// Subscriptions
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
 	uORB::Subscription _manual_control_switches_sub{ORB_ID(manual_control_switches) };
 	uORB::Subscription _manual_control_setpoint_sub{ ORB_ID(manual_control_setpoint) };	/**< manual control setpoint subscription */
 	uORB::Subscription _actuator_armed_sub{ ORB_ID(actuator_armed) };
+//	uORB::Subscription _tilt_command_sub{ ORB_ID(tilt_command) };
 
 
-	
+
 	// Publications
 	uORB::Publication<debug_vect_s> _debug_vect_pub{ORB_ID(debug_vect)};
 	uORB::Publication<actuator_servos_s>	_actuator_servos_pub{ ORB_ID(actuator_servos) };
@@ -130,6 +131,9 @@ private:
 	struct manual_control_setpoint_s	_manual_control_setpoint {};	/**< manual control setpoint */
 	actuator_servos_s actuator_servos;
 	actuator_armed_s _actuator_armed;
+	struct manual_control_switches_s _manual;
+
+//	tilt_command_s _tilt_enable;
 
 };
 

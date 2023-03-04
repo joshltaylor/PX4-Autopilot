@@ -166,7 +166,7 @@ void ArticulatedLandingGear::run()
 	parameters_update(true);
 
 
-	
+
 
 
 
@@ -176,34 +176,60 @@ void ArticulatedLandingGear::run()
 		px4_usleep(1000);
 
 
+
+
 		if (_manual_control_switches_sub.updated()) {
 
 			_manual_control_switches_sub.copy(&_manual);
 		}
 
-
+		_input_rc_sub.update(&_rc_channels);
+		PX4_INFO("pwm value: %f", (double)_rc_channels.values[5]);
 
 		if (state == LANDING_GEAR) {
-			if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_4) {
+			if (_rc_channels.values[5] > 1370 && _rc_channels.values[5] < 1630) {
 				state = GRIPPER_OPEN;
 			}
 		}
 		else if (state == GRIPPER_OPEN) {
-			if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_1) {
+			if (_rc_channels.values[5] < 1370) {
 				state = GRIPPER_CLOSED;
 			}
-			else if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_6) {
+			else if (_rc_channels.values[5] > 1630) {
 				state = LANDING_GEAR;
 			}
 		}
 		else {
-			if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_6) {
+			if (_rc_channels.values[5] > 1630) {
 				state = LANDING_GEAR;
 			}
-			else if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_4) {
+			else if (_rc_channels.values[5] > 1370 && _rc_channels.values[5] < 1550) {
 				state = GRIPPER_OPEN;
 			}
 		}
+
+		// if (state == LANDING_GEAR) {
+		// 	if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_4) {
+		// 		state = GRIPPER_OPEN;
+		// 	}
+		// }
+		// else if (state == GRIPPER_OPEN) {
+		// 	if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_1) {
+		// 		state = GRIPPER_CLOSED;
+		// 	}
+		// 	else if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_6) {
+		// 		state = LANDING_GEAR;
+		// 	}
+		// }
+		// else {
+		// 	if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_6) {
+		// 		state = LANDING_GEAR;
+		// 	}
+		// 	else if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_4) {
+		// 		state = GRIPPER_OPEN;
+		// 	}
+		// }
+
 
 		if (state == LANDING_GEAR) {
 			current_pos = _landing_gear_pos.get();
@@ -217,7 +243,7 @@ void ArticulatedLandingGear::run()
 
 		_alg_setpoint.setpoint = current_pos;
 		_alg_setpoint_pub.publish(_alg_setpoint);
-		PX4_INFO("setpoint: %i", current_pos);
+		//PX4_INFO("setpoint: %i", current_pos);
 
 		parameters_update();
 	}

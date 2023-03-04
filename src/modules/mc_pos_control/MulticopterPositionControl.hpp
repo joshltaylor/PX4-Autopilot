@@ -64,6 +64,8 @@
 #include <uORB/topics/vehicle_land_detected.h>
 #include <uORB/topics/vehicle_local_position.h>
 #include <uORB/topics/vehicle_local_position_setpoint.h>
+#include <uORB/topics/manual_control_switches.h>
+
 
 using namespace time_literals;
 
@@ -105,6 +107,8 @@ private:
 	uORB::Subscription _vehicle_constraints_sub {ORB_ID(vehicle_constraints)};
 	uORB::Subscription _vehicle_control_mode_sub {ORB_ID(vehicle_control_mode)};
 	uORB::Subscription _vehicle_land_detected_sub {ORB_ID(vehicle_land_detected)};
+	uORB::Subscription _manual_control_switches_sub{ORB_ID(manual_control_switches) };
+
 
 	hrt_abstime	_time_stamp_last_loop{0};		/**< time stamp of last loop iteration */
 
@@ -208,6 +212,11 @@ private:
 	uint8_t _heading_reset_counter{0};
 
 	perf_counter_t _cycle_perf{perf_alloc(PC_ELAPSED, MODULE_NAME": cycle time")};
+
+	bool pitch_disable;
+	struct manual_control_switches_s _manual;
+
+
 
 	/**
 	 * Update our local parameter cache.

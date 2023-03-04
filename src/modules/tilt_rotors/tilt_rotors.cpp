@@ -179,7 +179,7 @@ void TiltRotors::run()
 	parameters_update(true);
 
 
-	
+
 
 
 
@@ -190,6 +190,7 @@ void TiltRotors::run()
 
 		_manual_control_setpoint_sub.update(&_manual_control_setpoint);
 		_actuator_armed_sub.update(&_actuator_armed);
+		//_tilt_command_sub.update(&_tilt_enable);
 
 
 		if (_manual_control_switches_sub.updated()) {
@@ -243,6 +244,10 @@ void TiltRotors::run()
 		}
 		else {
 			if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_ON) {
+			//if (/*_tilt_enable.tilt_cmd == true*/true) {
+
+
+
 				tilt_angle = (double)_manual_control_setpoint.x * (double)_tilt_max_angle.get();
 				_dyn_angles.x = angle2counts(-1*tilt_angle);
 				_debug_vect_pub.publish(_dyn_angles);
@@ -262,7 +267,7 @@ void TiltRotors::run()
 
 				_actuator_servos_pub.publish(actuator_servos);*/
 			}
-			else if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_OFF) {
+			else {
 				_dyn_angles.x = _home_pos.get();
 				_debug_vect_pub.publish(_dyn_angles);
 
@@ -287,7 +292,7 @@ void TiltRotors::run()
 		}
 
 		_actuator_servos_pub.publish(actuator_servos);
-		
+
 
 
 		//int poll_ret = px4_poll(fds, 1, 1000);

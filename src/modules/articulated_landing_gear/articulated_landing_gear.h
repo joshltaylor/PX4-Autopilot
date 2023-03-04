@@ -47,6 +47,7 @@
 //#include <drivers/pwm_out.h>
 
 #include <uORB/topics/manual_control_switches.h>
+#include <uORB/topics/input_rc.h>
 
 
 using namespace time_literals;
@@ -84,8 +85,9 @@ public:
 private:
 
 	ALG_state state = LANDING_GEAR;
-	
+
 	struct manual_control_switches_s _manual;
+	struct input_rc_s _rc_channels;
 
 
 
@@ -103,14 +105,15 @@ private:
 		(ParamInt<px4::params::LANDING_GEAR_POS>) _landing_gear_pos,
 		(ParamInt<px4::params::GRIP_OPEN_POS>) _grip_open_pos,
 		(ParamInt<px4::params::GRIP_CLOSED_POS>) _grip_closed_pos
-	)	
+	)
 
 	// Subscriptions
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
 	uORB::Subscription _manual_control_switches_sub{ORB_ID(manual_control_switches) };
-	
+	uORB::Subscription _input_rc_sub{ORB_ID(input_rc)};
 
-	
+
+
 	// Publications
 	uORB::Publication<debug_vect_s> _debug_vect_pub{ORB_ID(debug_vect)};
 	uORB::Publication<alg_setpoint_s> _alg_setpoint_pub{ ORB_ID(alg_setpoint) };
@@ -118,7 +121,7 @@ private:
 
 	debug_vect_s			_dyn_angles{};
 	alg_setpoint_s			_alg_setpoint{};
-	
+
 
 };
 
