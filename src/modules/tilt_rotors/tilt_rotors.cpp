@@ -179,38 +179,19 @@ void TiltRotors::run()
 	parameters_update(true);
 
 
-
-
-
-
-
 	while (!should_exit()) {
 
 		px4_usleep(1000);
 
 		_manual_control_setpoint_sub.update(&_manual_control_setpoint);
 		_actuator_armed_sub.update(&_actuator_armed);
-		//_tilt_command_sub.update(&_tilt_enable);
-
-
 		if (_manual_control_switches_sub.updated()) {
 
 			_manual_control_switches_sub.copy(&_manual);
 		}
 
-		// if using transmitter knob method - replace gear switch if statement with...
-		//if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_ON) {
-		//	_dyn_angles.x = angle2counts(_tilt_knob.get());
-		//	PX4_INFO("Tilt angle: %f", (double)_tilt_knob.get());
-		//	_debug_vect_pub.publish(_dyn_angles);
-		//}
-		//else if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_OFF) {
-		//	_dyn_angles.x = angle2counts((double)_manual_control_setpoint.x * 45.00);
-		//	_debug_vect_pub.publish(_dyn_angles);
-		//	PX4_INFO("Vertical");
-		//}
-		// and make required to edits to mc_att_control_main.cpp
-
+		// When arming the drone, the tilt-rotors should ramp up to the set throttle, otherwise the ESCs will shut down
+		// switching between disarmed, armed, and ramp states is handled by a finite state machine
 		if (state == DISARMED) {
 			if (_actuator_armed.armed) {
 				state = RAMP;
@@ -221,7 +202,7 @@ void TiltRotors::run()
 			PX4_INFO("RAMP");
 			PX4_INFO("dt: %f", (double)dt);
 
-
+			// ramp for 2 seconds
 			if (dt >= 2) {
 				state = ARMED;
 				dt = 0.001f; // prevent division with 0
@@ -234,6 +215,7 @@ void TiltRotors::run()
 			}
 		}
 
+		// actions to be performed in each FSM state
 		if (state == DISARMED) {
 			thrust_command = -1;
 		}
@@ -243,44 +225,26 @@ void TiltRotors::run()
 			thrust_command = ((double)_tilt_thrtl.get() * ((double)dt / 2)) * 2.0 - 1;
 		}
 		else {
-			if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_ON) {
-			//if (/*_tilt_enable.tilt_cmd == true*/true) {
+			if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_ON) {	// horizontal thrust produced via tilt-rotors
 
-
-
+				// tilt angle is mapped directly to transmitter stick
 				tilt_angle = (double)_manual_control_setpoint.x * (double)_tilt_max_angle.get();
 				_dyn_angles.x = angle2counts(-1*tilt_angle);
 				_debug_vect_pub.publish(_dyn_angles);
 
-				// for dual transmitter flight mode
-				//thrust_command = (((double)_manual_control_setpoint.z * 0.9) / cos(tilt_angle * PI / 180)) - 0.9;
-				thrust_command = ((double)_tilt_thrtl.get() / cos(tilt_angle * PI / 180)) * 2.0 - 1; // nominal 40% throttle
-				/*if (thrust_command > 0.5) { thrust_command = 0.5; }
-				else if (thrust_command < -1) { thrust_command = -1; }
-				PX4_INFO("Thrust command: %f", (double)thrust_command);
-				actuator_servos.control[0] = thrust_command;
-				actuator_servos.control[1] = thrust_command;
-
-				for (int i = 2; i < actuator_servos_s::NUM_CONTROLS; i++) {
-					actuator_servos.control[i] = NAN;
-				}
-
-				_actuator_servos_pub.publish(actuator_servos);*/
+				// tilt-rotors always produce the same level of vertical thrust
+				thrust_command = ((double)_tilt_thrtl.get() / cos(tilt_angle * PI / 180)) * 2.0 - 1;
+				
 			}
-			else {
+			else {	// horizontal thrust produced via pitching
 				_dyn_angles.x = _home_pos.get();
 				_debug_vect_pub.publish(_dyn_angles);
 
-				// for dual trasmitter flight mode
-				/*for (int i = 0; i < actuator_servos_s::NUM_CONTROLS; i++) {
-					actuator_servos.control[i] = NAN;
-				}
-
-				_actuator_servos_pub.publish(actuator_servos);*/
 				thrust_command = (double)_tilt_thrtl.get() * 2.0 - 1;
 			}
 		}
 
+		// saturate and publish tilt-rotor throttle
 		if (thrust_command > (double)_tilt_thrtl_lim.get() * 2 - 1) { thrust_command = (double)_tilt_thrtl_lim.get() * 2 - 1; }
 		else if (thrust_command < -1) { thrust_command = -1; }
 		PX4_INFO("Thrust command: %f", (double)thrust_command);
@@ -292,29 +256,6 @@ void TiltRotors::run()
 		}
 
 		_actuator_servos_pub.publish(actuator_servos);
-
-
-
-		//int poll_ret = px4_poll(fds, 1, 1000);
-
-		//if (fds[0].revents & POLLIN) {
-
-		//	if (_manual_control_switches_sub.updated()) {
-
-		//		_manual_control_switches_sub.copy(&_manual);
-		//	}
-
-		//	if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_ON) {
-		//		//_dyn_angles.x = _tilt_knob.get();
-		//		PX4_INFO("Tilt angle: %f", (double)_tilt_knob.get());
-		//		_debug_vect_pub.publish(_dyn_angles);
-		//	}
-		//	else if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_OFF) {
-		//		_dyn_angles.x = HOME;
-		//		_debug_vect_pub.publish(_dyn_angles);
-		//	}
-
-		//}
 
 		parameters_update();
 	}

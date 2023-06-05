@@ -85,9 +85,9 @@ public:
 private:
 
 	ALG_state state = LANDING_GEAR;
-
 	struct manual_control_switches_s _manual;
 	struct input_rc_s _rc_channels;
+	alg_setpoint_s _alg_setpoint{};	// used to send servo position commands to dynamixel_serial module
 
 
 
@@ -113,15 +113,9 @@ private:
 	uORB::Subscription _input_rc_sub{ORB_ID(input_rc)};
 
 
-
 	// Publications
 	uORB::Publication<debug_vect_s> _debug_vect_pub{ORB_ID(debug_vect)};
 	uORB::Publication<alg_setpoint_s> _alg_setpoint_pub{ ORB_ID(alg_setpoint) };
-
-
-	debug_vect_s			_dyn_angles{};
-	alg_setpoint_s			_alg_setpoint{};
-
 
 };
 

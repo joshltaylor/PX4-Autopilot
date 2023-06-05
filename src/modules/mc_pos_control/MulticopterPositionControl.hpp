@@ -213,10 +213,11 @@ private:
 
 	perf_counter_t _cycle_perf{perf_alloc(PC_ELAPSED, MODULE_NAME": cycle time")};
 
+	// ####### Josh Edits ##############################
 	bool pitch_disable;
 	struct manual_control_switches_s _manual;
 
-
+	// #################################################
 
 	/**
 	 * Update our local parameter cache.

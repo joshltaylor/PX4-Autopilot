@@ -152,31 +152,15 @@ ArticulatedLandingGear::ArticulatedLandingGear()
 void ArticulatedLandingGear::run()
 {
 
-
-	//_dyn_angles.x = 0;
-	//_debug_vect_pub.publish(_dyn_angles);
-
-
-
 	state = LANDING_GEAR;
 
 	int current_pos;
 
-
 	parameters_update(true);
-
-
-
-
-
-
 
 	while (!should_exit()) {
 
 		px4_usleep(1000);
-
-
-
 
 		if (_manual_control_switches_sub.updated()) {
 
@@ -184,8 +168,9 @@ void ArticulatedLandingGear::run()
 		}
 
 		_input_rc_sub.update(&_rc_channels);
-		PX4_INFO("pwm value: %f", (double)_rc_channels.values[5]);
 
+		// transition between gripper states using FSM
+		// each gripper state is mapped directly a section of the transmitter knob
 		if (state == LANDING_GEAR) {
 			if (_rc_channels.values[5] > 1370 && _rc_channels.values[5] < 1630) {
 				state = GRIPPER_OPEN;
@@ -208,29 +193,8 @@ void ArticulatedLandingGear::run()
 			}
 		}
 
-		// if (state == LANDING_GEAR) {
-		// 	if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_4) {
-		// 		state = GRIPPER_OPEN;
-		// 	}
-		// }
-		// else if (state == GRIPPER_OPEN) {
-		// 	if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_1) {
-		// 		state = GRIPPER_CLOSED;
-		// 	}
-		// 	else if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_6) {
-		// 		state = LANDING_GEAR;
-		// 	}
-		// }
-		// else {
-		// 	if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_6) {
-		// 		state = LANDING_GEAR;
-		// 	}
-		// 	else if (_manual.mode_slot == manual_control_switches_s::MODE_SLOT_4) {
-		// 		state = GRIPPER_OPEN;
-		// 	}
-		// }
 
-
+		// set servo position given current state
 		if (state == LANDING_GEAR) {
 			current_pos = _landing_gear_pos.get();
 		}
@@ -241,9 +205,9 @@ void ArticulatedLandingGear::run()
 			current_pos = _grip_closed_pos.get();
 		}
 
+
 		_alg_setpoint.setpoint = current_pos;
 		_alg_setpoint_pub.publish(_alg_setpoint);
-		//PX4_INFO("setpoint: %i", current_pos);
 
 		parameters_update();
 	}
@@ -273,32 +237,17 @@ int ArticulatedLandingGear::print_usage(const char* reason)
 	PRINT_MODULE_DESCRIPTION(
 		R"DESCR_STR(
 ### Description
-This module runs a bench-test for a variable-tilt drone.
-Before using the module run:
-$ benchtest stop
-$ mc_rate_control stop
-$ benchtest start
-
+This module runs the articulated landing gear/gripper.
 
 
 ### Examples
-Start the benchtest module
-$ benchtest start
 
-Start a full benchtest
-$ benchtest full 30 10 8 1604
-
-Start a single benchtest
-$ benchtest single 30 45 1604
 
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("benchtest", "Variable-tilt drone");
+	PRINT_MODULE_USAGE_NAME("articulated_landing_gear", "Variable-tilt drone");
 	PRINT_MODULE_USAGE_COMMAND("start");
 
-	PRINT_MODULE_USAGE_COMMAND("full");
-	PRINT_MODULE_USAGE_ARG("MAX_TILT, NUM_TILT, NUM_HEADING, PWM_HOVER", "maximum tilt angle, number of tilt angles, number of headings, PWM at hover", false);
-	PRINT_MODULE_USAGE_COMMAND_DESCR("MAX_TILT|NUM_TILT|NUM_HEADING|PWM_HOVER", "Start full benchtest sequence");
 
 
 

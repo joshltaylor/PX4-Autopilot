@@ -311,10 +311,12 @@ void MulticopterPositionControl::Run()
 
 	perf_begin(_cycle_perf);
 
+	// ####### Josh Edits ##############################
 	if (_manual_control_switches_sub.updated()) {
 
 		_manual_control_switches_sub.copy(&_manual);
 	}
+	// #################################################
 
 	vehicle_local_position_s local_pos;
 
@@ -512,6 +514,7 @@ void MulticopterPositionControl::Run()
 
 			// ##################	JOSH EDIT	########################
 
+			// transmitter switch controls whether horizontal thrust in x-axis is produced via pitching or by tilting rotors
 			if (_manual.gear_switch == manual_control_switches_s::SWITCH_POS_ON) {
 				pitch_disable = true;
 			} else {
@@ -522,7 +525,7 @@ void MulticopterPositionControl::Run()
 
 			// Publish attitude setpoint output
 			vehicle_attitude_setpoint_s attitude_setpoint{};
-			_control.getAttitudeSetpoint(attitude_setpoint, pitch_disable);
+			_control.getAttitudeSetpoint(attitude_setpoint, pitch_disable);	// JOSH - Added pitch_disable boolean
 			attitude_setpoint.timestamp = hrt_absolute_time();
 			_vehicle_attitude_setpoint_pub.publish(attitude_setpoint);
 

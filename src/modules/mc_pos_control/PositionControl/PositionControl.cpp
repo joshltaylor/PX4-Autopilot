@@ -251,6 +251,7 @@ void PositionControl::getLocalPositionSetpoint(vehicle_local_position_setpoint_s
 	_thr_sp.copyTo(local_position_setpoint.thrust);
 }
 
+// JOSH - Added pitch_disable boolean
 void PositionControl::getAttitudeSetpoint(vehicle_attitude_setpoint_s &attitude_setpoint, bool pitch_disable) const
 {
 	ControlMath::thrustToAttitude(_thr_sp, _yaw_sp, attitude_setpoint, pitch_disable);

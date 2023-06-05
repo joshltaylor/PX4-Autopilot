@@ -89,7 +89,11 @@ private:
 
 	system_state state = DISARMED;
 
-
+	debug_vect_s			_dyn_angles{};
+	struct manual_control_setpoint_s	_manual_control_setpoint {};	/**< manual control setpoint */
+	actuator_servos_s actuator_servos;
+	actuator_armed_s _actuator_armed;
+	struct manual_control_switches_s _manual;
 
 	// convert servo setpoint in degrees to encoder counts
 	int angle2counts(double angle);
@@ -126,14 +130,6 @@ private:
 	uORB::Publication<debug_vect_s> _debug_vect_pub{ORB_ID(debug_vect)};
 	uORB::Publication<actuator_servos_s>	_actuator_servos_pub{ ORB_ID(actuator_servos) };
 
-
-	debug_vect_s			_dyn_angles{};
-	struct manual_control_setpoint_s	_manual_control_setpoint {};	/**< manual control setpoint */
-	actuator_servos_s actuator_servos;
-	actuator_armed_s _actuator_armed;
-	struct manual_control_switches_s _manual;
-
-//	tilt_command_s _tilt_enable;
 
 };
 

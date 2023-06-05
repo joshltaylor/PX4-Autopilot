@@ -65,7 +65,7 @@ PARAM_DEFINE_INT32(HOME_POS, 2048);
 
 
 /**
- * Tilt Rotor Throttle
+ * Tilt Rotor Throttle (Corresponds to the level of upward thrust produced by the tilt-rotors - this remains constant throughout flight)
  *
  * @group TiltRotors
  * @decimal 5

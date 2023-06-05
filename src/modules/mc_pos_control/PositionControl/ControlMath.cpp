@@ -44,6 +44,7 @@ using namespace matrix;
 
 namespace ControlMath
 {
+// JOSH - added pitch_disable boolean
 void thrustToAttitude(const Vector3f &thr_sp, const float yaw_sp, vehicle_attitude_setpoint_s &att_sp, bool pitch_disable)
 {
 	bodyzToAttitude(-thr_sp, yaw_sp, att_sp, pitch_disable);
@@ -67,6 +68,7 @@ void limitTilt(Vector3f &body_unit, const Vector3f &world_unit, const float max_
 	body_unit = cosf(angle) * world_unit + sinf(angle) * rejection.unit();
 }
 
+// JOSH - Added pitch_disable boolean
 void bodyzToAttitude(Vector3f body_z, const float yaw_sp, vehicle_attitude_setpoint_s &att_sp, bool pitch_disable)
 {
 	// zero vector, no direction, set safe level value
@@ -114,6 +116,7 @@ void bodyzToAttitude(Vector3f body_z, const float yaw_sp, vehicle_attitude_setpo
 	// ############ JOSH EDIT	###################################
 
 	if (pitch_disable) {
+		// Modify quaternion so that pitch setpoint is set to zero
 		Eulerf euler_{R_sp};
 		Eulerf euler_update(euler_.phi(),0,euler_.psi());
 		const Quatf q_sp_update{euler_update};
